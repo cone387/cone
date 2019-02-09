@@ -1,7 +1,7 @@
 from cone.spider import ConeSpider, spider_logger as logger, BaseRecorder, SqlRecorder
 from cone.spider.item import OriginSqlItem, Field
-from cone.sql import Sqliter
 from pyquery import PyQuery
+import sqlite3
 
 """
     以下就完成了对中国新闻网当日的滚动新闻的爬取入库.
@@ -9,10 +9,10 @@ from pyquery import PyQuery
 
 
 SQL = {
-    # 'host': '47.94.99.0',
+    # 'host': '',
     'db': 'demo_db.db',
-    # 'user': 'cone',
-    # 'pwd': '3.1415926'
+    # 'user': '',
+    # 'pwd': ''
 }
 
 
