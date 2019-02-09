@@ -7,12 +7,16 @@
 贴出部分demo代码
 
 # 定义一个OriginSqlItem便于数据入库
+
+```python
 class DemoItem(OriginSqlItem):
     title = Field('nvarchar(100)')
     tag = Field('nvarchar(20)')
     url = Field('nchar(500)')
+```
 
 # 定义一个Recorder规定数据保存方式
+```python
 class DemoRecorder(BaseRecorder):
     table = 'demo_table'
     def __init__(self):
@@ -22,6 +26,7 @@ class DemoRecorder(BaseRecorder):
 
     def record(self, item):
         return DemoItem.save(self.sql, self.table, item)
+```
 
 """
     或者直接使用SqlRecorder入库
@@ -32,6 +37,7 @@ class DemoRecorder(BaseRecorder):
 """
 
 # 与Scrapy的部分操作类似
+```
 class DemoSpider(ConeSpider):
     """
         如果遇到反爬可以自定义downloader
@@ -43,6 +49,6 @@ class DemoSpider(ConeSpider):
     def parse(self, response):
         pass
         """详见demo_spider"""
-
+```
 
 运行爬虫即可
