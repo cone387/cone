@@ -37,7 +37,7 @@ class DemoRecorder(BaseRecorder):
 """
 
 # 与Scrapy的部分操作类似
-```
+```python
 class DemoSpider(ConeSpider):
     """
         如果遇到反爬可以自定义downloader
@@ -51,4 +51,6 @@ class DemoSpider(ConeSpider):
         """详见demo_spider"""
 ```
 
-运行爬虫即可
+spider = DemoSpider()
+spider.start()
+即可运行爬虫,Ctrl + C 暂停，连按关闭爬虫
