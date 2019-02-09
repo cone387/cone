@@ -1,7 +1,7 @@
 from cone.spider import ConeSpider, spider_logger as logger, BaseRecorder, SqlRecorder
 from cone.spider.item import OriginSqlItem, Field
 from pyquery import PyQuery
-import sqlite3
+from cone.sql import Sqliter
 
 """
     以下就完成了对中国新闻网当日的滚动新闻的爬取入库.
