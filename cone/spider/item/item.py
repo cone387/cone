@@ -21,7 +21,11 @@ class MetaItem(type):
 
 
 class Field(str):
-    pass
+    def __new__(cls, value, descr=None):
+        obj = str.__new__(cls, value)
+        obj.descr = descr
+        return obj
+        
 
 class Relation(str):
     pass
@@ -40,7 +44,7 @@ class BaseItem(dict, metaclass=MetaItem):
     def __setitem__(self, k, v):
         self.fields[k] = v
 
-    def __delitem__(self):
+    def __delitem__(self, key):
         del self.fields[key]
 
     def __len__(self):

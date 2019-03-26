@@ -44,8 +44,7 @@ class SqlRecorder(BaseRecorder):
 
 
 class Recorder(BaseThread):
-    def __init__(self, name='recorder'):
-        queue = Queue()
+    def __init__(self, queue=Queue(), name='recorder'):
         self.recorders = []
         super().__init__(queue, name=name)
 

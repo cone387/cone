@@ -30,7 +30,7 @@ class BaseThread(threading.Thread):
         self._run_flag = False
 
     def execute(self, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def run(self):
         """

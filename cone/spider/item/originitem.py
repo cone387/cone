@@ -1,14 +1,15 @@
 from .item import BaseItem, Field
-
+import sqlite3
 
 class OriginSqlItem(BaseItem):
     """
         稍微封装一下sql语句，避免每次爬虫都要写SQL语句
     """
-
+    table = None
 
     @classmethod
-    def create_item(cls, sql, table,  sqltype='sqlite'):
+    def create_item(cls, sql, table=None,  sqltype='sqlite'):
+        table = table if table else cls.table
         create_list = []
         for k, f in cls.fields.items():
             create_list.append(f'{k} {f}')
@@ -31,14 +32,17 @@ class OriginSqlItem(BaseItem):
     def rollback(cls, sql):
         sql.conn.rollback()
 
+
     @classmethod
-    def get_items(cls, sql, table, select_list=['*'], order_str='', filter_str=''):
+    def get_items(cls, sql, table=None, select_list=['*'], order_str='', filter_str=''):
         """
             select_list = [*],
             order_str = ''
         """
+        table = table if table else cls.table
         selects = ','.join(select_list)
         cmd = f'select {selects} from {table} {filter_str} {order_str}'
+        print(cmd)
         sql.cursor.execute(cmd)
         return sql.cursor.fetchall()
 
@@ -140,16 +144,21 @@ class OriginSqlItem(BaseItem):
         try:
             sql.cursor.execute(cmd)
             msg = (True, cmd)
+        except sqlite3.IntegrityError:
+            msg = (True, cmd)
         except Exception as e:
             # cls.rollback(sql)
             msg =  (False, str(e))
-        sql.conn.commit()
+        try:
+            sql.conn.commit()
+        except:
+            sql.conn.ping()
         return msg
 
 
     @classmethod
-    def update_item(cls, sql, table, value_dict={}, limit_dict={}):
-        value_str = ','.join([f"{k}='{v}'" for k, v in value_dict.items()])
+    def update_item(cls, sql, table, value_dict={}, limit_dict={}, quotation="'"):
+        value_str = ','.join([f"{k}={quotation}{v}{quotation}" for k, v in value_dict.items()])
         if limit_dict:
             limit_str = 'where ' + ' and '.join([f"{k}='{v}'" for k, v in limit_dict.items()])
         else:
@@ -164,6 +173,7 @@ class OriginSqlItem(BaseItem):
             # cls.rollback(sql)
             msg = (False, str(e))
         sql.conn.commit()
+        return msg
 
 
 class MongoItem(BaseItem):

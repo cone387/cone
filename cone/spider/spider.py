@@ -8,7 +8,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 class ConeSpider(object):
     """
         Spider包括下载器, 解析器。
@@ -54,8 +53,8 @@ class ConeSpider(object):
     def download(self, priority=100, **kwargs):
         self._downloader_pool.do(priority, **kwargs)
 
-    def record(self, item, record=None):
-        self._recorder.do(item=item, record=record)
+    def record(self, item, priority=100, record=None):
+        self._recorder.do(priority, item=item, record=record)
 
     def parse(self, response):
         print(response.status_code)
@@ -65,11 +64,20 @@ class ConeSpider(object):
             self.download(url=url, callback=self.parse)
     
     def if_break(self):
-        if (self._downloader_pool is None or self._downloader_pool.queue.empty() or \
-            not self._downloader_pool.queue.unfinished_tasks) and \
+        self._downloader_pool.check_thread()
+        if not self._downloader_pool.isAlive():
+            # while not self._downloader_pool.queue.empty():
+            #     self._downloader_pool.queue.get(timeout=1)
+            # self._downloader_pool.queue.unfinished_tasks = 0
+            return True
+        if (self._downloader_pool is None or (self._downloader_pool.queue.empty() and \
+            not self._downloader_pool.queue.unfinished_tasks)) and \
             (self._recorder is None or not self._recorder.queue.unfinished_tasks) and not self.block:
                 logger.info('spider finished, used time: %.1fs', time.time()-self.start_time)
                 return True
+        # print('dq empty', self._downloader_pool.queue.empty())
+        # print('dq unfinished_tasks', self._downloader_pool.queue.unfinished_tasks)
+        # print('rq', self._recorder.queue.unfinished_tasks)
         return False
 
     def info(self):
@@ -121,8 +129,7 @@ class ConeSpider(object):
             self._recorder.start()
         self._downloader_pool.start()
         self.before_start()
-        if info:
-            self.loop()
+        self.loop()
         self.stop()
 
     def pause(self):
