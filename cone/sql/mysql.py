@@ -2,15 +2,15 @@ import pymysql
 
 
 class MySql(object):
-    def __init__(self, host=None,db=None,user=None,pwd=None):
+    def __init__(self, host=None,db=None,user=None,pwd=None, port=0):
         self.host = host
         self.db = db
         self.user = user
         self.pwd = pwd
-        self.login(host, db, user, pwd)
+        self.login(host, db, user, pwd, port)
     
-    def login(self, host,db, user, pwd):
-        self.conn = pymysql.connect(host, user, pwd, charset='UTF8MB4')
+    def login(self, host,db, user, pwd, port):
+        self.conn = pymysql.connect(host, user, pwd, port=port, charset='UTF8MB4')
         self.cursor = self.conn.cursor()
         cmd = f'create database if not exists {db}'
         self.cursor.execute(cmd)

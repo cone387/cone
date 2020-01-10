@@ -1,5 +1,7 @@
 from .item import BaseItem, Field
 import sqlite3
+import pymysql
+
 
 class OriginSqlItem(BaseItem):
     """
@@ -25,7 +27,6 @@ class OriginSqlItem(BaseItem):
             ({creation})".format(table=table, creation=','.join(create_list))
         else:
             raise AttributeError
-        # print(cmd)
         sql.cursor.execute(cmd)
 
     @classmethod
@@ -42,7 +43,7 @@ class OriginSqlItem(BaseItem):
         table = table if table else cls.table
         selects = ','.join(select_list)
         cmd = f'select {selects} from {table} {filter_str} {order_str}'
-        print(cmd)
+        # print(cmd)
         sql.cursor.execute(cmd)
         return sql.cursor.fetchall()
 
@@ -101,7 +102,7 @@ class OriginSqlItem(BaseItem):
         insert_str = ','.join(name_list)
         value_str = tuple(value_list)
         cmd = f"insert into {table}({insert_str}) values{value_str}"
-        print(cmd)
+        # print(cmd)
         try:
             sql.cursor.execute(cmd)
             sql.conn.commit()
@@ -109,12 +110,12 @@ class OriginSqlItem(BaseItem):
         except Exception as e:
             return (False, str(e))
 
-    @classmethod
-    def get_one(cls, sql, table, select_list=['*'], order_str='', filter_str=''):
-        selects = ','.join(select_list)
-        cmd = f'select {selects} from {table} {filter_str} {order_str}'
-        sql.cursor.execute(cmd)
-        return sql.cursor.fetchone()
+    # @classmethod
+    # def get_one(cls, sql, table, select_list=['*'], order_str='', filter_str=''):
+    #     selects = ','.join(select_list)
+    #     cmd = f'select {selects} from {table} {filter_str} {order_str}'
+    #     sql.cursor.execute(cmd)
+    #     return sql.cursor.fetchone()
 
     @classmethod
     def raw_query(cls, sql, cmd):
@@ -144,17 +145,31 @@ class OriginSqlItem(BaseItem):
         try:
             sql.cursor.execute(cmd)
             msg = (True, cmd)
+        except pymysql.IntegrityError:
+            msg = (True, cmd)
         except sqlite3.IntegrityError:
             msg = (True, cmd)
         except Exception as e:
             # cls.rollback(sql)
-            msg =  (False, str(e))
+            msg = (False, str(e) + cmd)
         try:
             sql.conn.commit()
         except:
             sql.conn.ping()
         return msg
 
+    @classmethod
+    def get_save_cmd(cls, table, item):
+        inserts = []
+        values = []
+        for key, value in item.items():
+            inserts.append(key)
+            values.append("'{}'".format(value))
+        insert_str = ','.join(inserts)
+        value_str = ','.join(values)
+        return 'insert into {}({}) values({})'.format(
+            table, insert_str, value_str
+        )
 
     @classmethod
     def update_item(cls, sql, table, value_dict={}, limit_dict={}, quotation="'"):
@@ -174,6 +189,23 @@ class OriginSqlItem(BaseItem):
             msg = (False, str(e))
         sql.conn.commit()
         return msg
+
+
+class SqlItem(BaseItem):
+    table = None
+
+    @classmethod
+    def create_item(cls, sql):
+        create_list = []
+        for k, f in cls.fields.items():
+            create_list.append(f'{k} {f}')
+        if cls.relation:
+            create_list.append(cls.relation)
+        cmd = "if not exists (select * from sysobjects where id=object_id('{table}') \
+            and OBJECTPROPERTY(id, 'IsUserTable')=1) \
+            create table {table}\
+            ({creation})".format(table=cls.table, creation=','.join(create_list))
+        sql.cursor.execute(cmd)
 
 
 class MongoItem(BaseItem):

@@ -4,7 +4,7 @@ from collections import OrderedDict
 class MetaItem(type):
     def __new__(cls, name, bases, attrs):
         fields = {}
-        for k, v in attrs.items():
+        for k, v in list(attrs.items()):
             if isinstance(v, Field):
                 fields[k] = v
             elif isinstance(v, Relation):

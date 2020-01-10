@@ -13,11 +13,17 @@ class Sql:
 
 
 class MysqlPool():
-    def __init__(self, host=None, db=None,user=None,pwd=None):
-        self._pool = PooledDB(pymysql, maxconnections=10, host=host, user=user, passwd=pwd, db=db)
+    def __init__(self, host=None, db=None, user=None, pwd=None, port=None, maxconnections=20):
+        self._pool = PooledDB(pymysql, maxconnections=maxconnections,maxcached=20, host=host, user=user, passwd=pwd, db=db, port=port)
+
+    def get_pool(self):
+        return self._pool
 
     def get_sql(self):
         return Sql(self._pool.connection())
+
+    def close(self):
+        self._pool.close()
 
 
 

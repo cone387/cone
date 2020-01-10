@@ -51,6 +51,16 @@ class Recorder(BaseThread):
     def add_recorder(self, recorder):
         self.recorders.append(recorder)
 
+    def get_success_num(self):
+        return self.recorders[0].success_num
+
+    def get_faild_num(self):
+        return self.recorders[0].error_num
+
+    def reset_num(self):
+        self.recorders[0].success_num = 0
+        self.recorders[0].error_num = 0
+
     def get_recorder_info(self):
         info = {}
         for recorder in self.recorders:
@@ -59,7 +69,10 @@ class Recorder(BaseThread):
 
     def execute(self, item='', record=None):
         if record:
-            record(item)
+            if record(item):
+                self.recorders[0].success_num += 1
+            else:
+                self.recorders[0].error_num += 1
         else:
             for recorder in self.recorders:
                 if recorder.record(item):

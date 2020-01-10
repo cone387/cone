@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 class BaseDownloader(BaseThread):
     delay = 0
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36'}
-    
     def __init__(self, queue, dones=set(), errors=set(), name='downloader'):
         self.dones = dones
         self.errors = errors
@@ -35,8 +34,9 @@ class BaseDownloader(BaseThread):
             800: 代理错误
             600: 未知错误
         """
+        headers = kwargs.pop('headers', self.headers)
         try:
-            return requests.get(url, headers=self.headers, timeout=20, verify=False, **kwargs)
+            return requests.get(url, headers=headers, timeout=60, verify=False, **kwargs)
         except requests.exceptions.ConnectTimeout:
             # logger.info('ConnectTimeout, redownload...')
             return Response(status_code=700, url=url) 
@@ -69,13 +69,19 @@ class BaseDownloader(BaseThread):
         if status_code == 200:
             logger.debug(f'download<{self.name}> {url} <{status_code}>')
             if callback:
-                callback(res)
+                try:
+                    callback(res)
+                except Exception as e:
+                    logger.error('callback error: %s', str(e))
         elif status_code == 302 and http302:
             http302(res)
         else:
             logger.info(f'error: download<{self.name}> {url} {status_code}')
-            if errorcall: 
-                errorcall(res)
-            self.errors.add(url)    
+            if errorcall:
+                try:
+                    errorcall(res)
+                except Exception as e:
+                    logger.error('errorcall error: %s', str(e))
+            self.errors.add(fingerprint)    
         time.sleep(delay)
         self.dones.add(fingerprint)

@@ -1,5 +1,6 @@
 import json
 
+
 class Response(object):
     def __init__(self, text="<html></html>", url="", status_code=600, error_msg=''):
         self.text = text
